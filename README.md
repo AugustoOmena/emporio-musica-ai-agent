@@ -39,6 +39,19 @@ The project implements a hybrid architecture with a strict separation between st
 - Dynamically loads operational CSV files (`products`, `orders`, `customers`, `promotions`, `categories`).
 - Normalizes table names and exposes typed schemas, allowing the model to generate analytical SQL queries at runtime while ensuring complete protection against data mutations (_read-only_).
 
+#### Operational Relational Dataset (`data/*.csv`)
+
+The structured data layer automatically parses, sanitizes, and registers six operational CSV tables into DuckDB:
+
+| Table Name    | Source File Pattern | Business Purpose                                                     | Key Fields                                                                                 |
+| :------------ | :------------------ | :------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `products`    | `*products*.csv`    | Master catalog of musical instruments offered by the store[cite: 2]. | `product_id`, `name`, `category_id`, `price_brl`, `stock_quantity`, `description`, `specs` |
+| `categories`  | `*categories*.csv`  | Instrument classification hierarchy[cite: 2].                        | `category_id`, `name`, `description`                                                       |
+| `customers`   | `*customers*.csv`   | Customer identification for authenticated order lookups.             | `customer_id`, `full_name`, `cpf`, `email`, `phone`, `city`, `state`                       |
+| `orders`      | `*orders*.csv`      | Customer purchases, delivery timelines, tracking IDs, and statuses.  | `order_id`, `customer_id`, `order_date`, `status`, `tracking_code`, `total_brl`            |
+| `order_items` | `*order_items*.csv` | Line-item breakdown per order.                                       | `order_item_id`, `order_id`, `product_id`, `quantity`, `unit_price_brl`                    |
+| `promotions`  | `*promotions*.csv`  | Seasonal sales campaigns and discount percentages[cite: 6].          | `promotion_id`, `name`, `discount_percent`, `start_date`, `end_date`, `is_active`          |
+
 ### `src/rag_engine.py` — Vector RAG Layer with ChromaDB
 
 - Ingests `politicas_da_loja.pdf` using word-boundary sliding-window chunking (500 characters with 100-character overlap).
@@ -67,6 +80,22 @@ The project implements a hybrid architecture with a strict separation between st
 | User Interface      | Streamlit                 | Rapid interactive prototyping with persistent session state management and model selection directly in the UI.                                       |
 
 ---
+
+### Prompt Engineering Strategy
+
+The system prompt in `src/prompts.py` was engineered to maximize tool execution reliability and enforce strict factual grounding:
+
+1. **Dynamic Schema Grounding (Zero Hallucination):**
+   Rather than hardcoding table descriptions, the prompt introspects the DuckDB instance at startup and injects the live relational schema (`{schema}`) directly into the prompt context. This ensures the model constructs syntactically valid SQL queries with precise column names and types.
+
+2. **Relational Disambiguation & Join Guidance:**
+   In retail databases, product names typically store manufacturer models (e.g., `Yamaha C40`) rather than generic category nouns (e.g., `Violão`). The prompt explicitly instructs the LLM on catalog semantics, mandating `JOIN` operations between `products` and `categories` and multi-field matching (`ILIKE` across `name`, `description`, and `categories.name`). This prevents empty queries and multi-turn retry loops.
+
+3. **Deterministic Tool Routing Heuristics:**
+   The prompt enforces a clear dichotomy between transactional operations (delegated exclusively to `consultar_banco_dados`) and institutional policies (delegated exclusively to `consultar_politicas_loja`), eliminating ambiguous or redundant tool calls.
+
+4. **Domain Guardrails & Persona Calibration:**
+   The prompt anchors the assistant to the _Empório da Música_ persona (warm, professional, music-oriented). Negative constraints prevent answering out-of-scope requests (e.g., programming, medical, or culinary queries) and strictly forbid guessing prices, stock levels, or order numbers without prior tool validation.
 
 ## Running Locally
 
@@ -157,13 +186,27 @@ Validated real-world scenarios documented in the `examples/` directory:
 
 ---
 
-## AI Coding Assistants and Development Workflow
+## AI Coding Assistants & Engineering Workflow
 
-Throughout the development of this project, I used AI assistants as technical pair-programming partners to:
+In full alignment with the challenge guidelines regarding transparency, Generative AI models and coding assistants were integrated throughout the development lifecycle as technical pair-programming partners.
 
-- Accelerate the creation of boilerplate code for Tool Calling schemas.
-- Assist with debugging and validating regular expressions for DuckDB table name sanitization (`src/utils.py`).
-- Structure synthetic test scenarios and project documentation.
+### 1. Tooling Selected
+
+- **Primary Pair-Programming Assistant:** Google Gemini (via interactive technical reasoning sessions).
+- **Execution Environment:** macOS development environment, testing code iteratively across terminal CLI and Streamlit.
+
+### 2. Workflow Breakdown & Critical Validation
+
+Rather than relying on one-shot code generation, the assistant was utilized in a disciplined, human-in-the-loop engineering workflow:
+
+- **Architecture & Contract Scaffolding:** Accelerated the generation of initial boilerplate code, specifically strict JSON Schema definitions for LiteLLM Tool Calling declarations and DuckDB metadata introspection helpers.
+- **Troubleshooting Relational Queries (Join Disambiguation):** During runtime testing of product inquiries (e.g., searching for acoustic guitars under R$ 1,000), queries initially resulted in empty sets due to DuckDB filtering solely on `products.name` (which contained model codes like `Yamaha C40` rather than the category noun `Violão`). Through active debugging sessions, we identified the multi-turn tool-calling loop, redesigned the system prompt heuristics, and mandated explicit relational `JOIN` operations with `categories` and `description` fallback filtering.
+- **RAG Vector Pipeline Refinement:** Evaluated ChromaDB lifecycle design trade-offs. We explicitly audited and replaced an initial in-memory ephemeral client with `PersistentClient` in `data/chroma_db/`, implemented word-boundary sliding-window chunking to prevent mid-word string truncations, and introduced lazy initialization (`get_rag_engine()`) to eliminate import-time side effects during testing.
+- **Documentation & Evaluation Scenarios:** Assisted in drafting structured, bilingual technical documentation (English README and executive reporting; Portuguese conversational test cases) and formatting benchmark interaction logs across the 5 required evaluation scenarios.
+
+### 3. Engineering Autonomy
+
+All business logic, database constraints, defensive exception handling, UI refinements, and architectural decisions were reviewed, debugged, executed locally, and validated against actual dataset tables before Git commits.
 
 ---
 
