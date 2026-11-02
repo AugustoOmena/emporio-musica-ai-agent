@@ -1,0 +1,24 @@
+# Ambiente virtual
+.venv/
+env/
+venv/
+
+# Variáveis de ambiente e credenciais
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Banco de dados e índices locais temporários
+*.duckdb
+.chroma/
+
+# Sistema Operacional (macOS)
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
