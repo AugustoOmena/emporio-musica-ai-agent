@@ -7,7 +7,7 @@ def execute_sql_query(query: str) -> str:
     try:
         results = db_manager.execute_query(query)
         if not results:
-            return "Nenhum registro encontrado."
+            return "Nenhum registro encontrado. Caso tenha filtrado apenas em 'products.name', faca JOIN com 'categories' ou busque em 'description'."
         return json.dumps(results[:10], ensure_ascii=False, default=str)
     except Exception as error:
         return f"Erro na consulta SQL: {str(error)}"
@@ -31,8 +31,9 @@ TOOLS_SCHEMA = [
         "function": {
             "name": "consultar_banco_dados",
             "description": (
-                "Executa uma consulta SQL somente-leitura (SELECT) no banco de dados operacional da Empório da Música. "
-                "Use para consultar: produtos, precos, estoque, pedidos, rastreio, clientes e promocoes ativas."
+                "Executa consulta SQL SELECT no DuckDB. "
+                "Para tipos de instrumentos (ex: violoes, guitarras), faca JOIN entre 'products' e 'categories' "
+                "ou filtre em 'description', pois 'products.name' prioriza marcas e modelos."
             ),
             "parameters": {
                 "type": "object",
