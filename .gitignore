@@ -3,20 +3,21 @@
 env/
 venv/
 
-# Variáveis de ambiente e credenciais
+# Variáveis de ambiente
 .env
 
-# Python cache
+# Cache Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-# Banco de dados e índices locais temporários
+# DuckDB e persistência vetorial ChromaDB
 *.duckdb
+data/chroma_db/
 .chroma/
 
-# Sistema Operacional (macOS)
+# Sistema Operacional
 .DS_Store
 
 # IDEs
