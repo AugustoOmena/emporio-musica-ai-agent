@@ -9,11 +9,9 @@ Input identified as out of domain (culinary recipe). Guardrail triggered without
 
 **Agent Response:**
 
-> Como assistente oficial da Empório da Música, meu foco é ajudar com instrumentos musicais, acessórios, dúvidas sobre pedidos e as políticas da nossa loja em Campo Grande/MS. Infelizmente não posso te passar receitas culinárias.
+> Como assistente virtual oficial da Empório da Música, meu foco é exclusivamente ajudar você com nosso catálogo de instrumentos musicais, dúvidas sobre pedidos e políticas da nossa loja em Campo Grande/MS. Por isso, não consigo te passar receitas culinárias! 🎸
 >
-> Mas se quiser uma dica para animar o momento de fazer o bolo, posso te indicar ótimas opções de caixas de som Bluetooth ou instrumentos para tocar enquanto a massa assa! 🎸🎵
->
-> Tem alguma dúvida sobre nossos produtos ou pedidos?
+> Mas se você estiver procurando um violão, teclado, guitarra ou outro instrumento para tocar e se inspirar, estou à disposição para te ajudar. Tem alguma dúvida sobre nossos produtos?
 
 ### Interface Screenshot
 
